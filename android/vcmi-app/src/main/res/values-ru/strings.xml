@@ -15,4 +15,7 @@
     <string name="notification_permission_settings">Настройки</string>
     <string name="quit_message">Вы действительно хотите завершить игру? Несохраненный прогресс будет потерян.</string>
     <string name="data_folder_name">Данные VCMI</string>
+    <string name="bundled_data_extracting">Установка данных Heroes III из приложения. Это происходит один раз после установки.</string>
+    <string name="bundled_data_error_title">Не удалось установить данные игры</string>
+    <string name="bundled_data_error_message">Не удалось скопировать данные игры из приложения. Проверьте, что на устройстве достаточно свободного места, и перезапустите VCMI.</string>
 </resources>

@@ -15,4 +15,7 @@
     <string name="data_folder_name">VCMI Data</string>
     <string name="shortcut_play">Play VCMI</string>
     <string name="shortcut_editor">Open VCMI Editor</string>
+    <string name="bundled_data_extracting">Installing Heroes III data bundled with the app. This happens once after installation.</string>
+    <string name="bundled_data_error_title">Failed to install game data</string>
+    <string name="bundled_data_error_message">Game data bundled with the app could not be copied. Check that the device has enough free space and restart VCMI.</string>
 </resources>

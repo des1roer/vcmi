@@ -44,7 +44,7 @@
 		android:theme="@style/AppTheme"
 	>
 		<activity
-			android:name=".ActivityLauncher"
+			android:name=".ActivityBundledData"
 			android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density"
 			android:exported="true"
 			android:screenOrientation="sensorLandscape">
@@ -54,8 +54,14 @@
 				<category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
 			</intent-filter>
 
-			<meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" /> 
+			<meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+		</activity>
 
+		<activity
+			android:name=".ActivityLauncher"
+			android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density"
+			android:exported="true"
+			android:screenOrientation="sensorLandscape">
 			<meta-data android:name="android.app.lib_name" android:value="-- %%INSERT_APP_LIB_NAME%% --"/>
 			<meta-data android:name="android.app.qt_sources_resource_id" android:resource="@array/qt_sources"/>
 			<meta-data android:name="android.app.repository" android:value="default"/>

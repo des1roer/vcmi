@@ -48,6 +48,10 @@ android {
 			java.srcDirs = [qt5AndroidDir + '/src', 'src', SDL_JAVA_SRC_DIR]
 			aidl.srcDirs = [qt5AndroidDir + '/src', 'src', 'aidl']
 			res.srcDirs = [qt5AndroidDir + '/res', 'src/main/res', '../res']
+
+			// directory with a vcmi-data subdirectory holding Heroes 3 Data, Maps and Mp3, extracted by ActivityBundledData
+			if (project.hasProperty('bundledGameDataDir'))
+				assets.srcDirs += [project.property('bundledGameDataDir')]
 		}
 	}
 
@@ -97,7 +101,8 @@ android {
 
 	// Do not compress Qt binary resources file
 	aaptOptions {
-		noCompress 'rcc'
+		// game archives and music are already compressed; uncompressed assets also report their size to ActivityBundledData
+		noCompress 'rcc', 'lod', 'LOD', 'snd', 'SND', 'vid', 'VID', 'mp3', 'MP3', 'h3m', 'H3M', 'h3c', 'H3C'
 	}
 }
 
