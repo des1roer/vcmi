@@ -18,7 +18,7 @@
   Пресеты для Windows в `CMakePresets.json`: `windows-msvc-release`, `windows-msvc-ninja-release` и др.
 - Visual Studio 2022 и Python 3.14 установлены (`C:\Program Files (x86)\Microsoft Visual Studio\2022`, `vswhere.exe` там же). MSVC-тулчейн доступен, просто не в PATH у Git Bash.
 - Установлен Vulkan SDK 1.4.363.0 (`C:\VulkanSDK`) — пригодится для `clientsdl3` (SDL3/GPU).
-- Данных H3 / пользовательского каталога VCMI (`Documents\My Games\vcmi`) на машине не найдено — игру запустить для проверки пока нельзя.
+- Данные H3 (Complete, с HD/HotA): `C:\games\Heroes of Might and Magic 3 Complete`. Пользовательского каталога VCMI (`Documents\My Games\vcmi`) нет.
 - `git submodule status` в корне репозитория показывает, что сабмодули уже проинициализированы (`dependencies`, `client/lib/discord-presence`, `launcher/lib/innoextract`, `test/googletest`).
 
 ## Попытка сборки релиза (2026-11-12/13, не завершена)
@@ -38,6 +38,29 @@
 3. `conan install . --output-folder=conan-msvc --build=never --profile=dependencies\conan_profiles\msvc-x64 -s "&:compiler.version=<версия из profile detect>" -s "&:build_type=Release"` (подробности — `docs/developers/Building_Windows.md`).
 4. `cmake --preset windows-msvc-ninja-release` (или `windows-msvc-release` для VS-генератора), затем сборка и упаковка (CPack → ZIP/NSIS, см. `CMakeLists.txt` ~строка 910-980).
 5. Итоговый артефакт положить/скопировать в `C:\dev\vcmi\releases`.
+
+## Сборка Android APK (2026-11-13, работает)
+
+Готовый APK: `C:\dev\vcmi\releases\vcmi-1.8.0-dev-arm64-v8a.apk` (arm64, RelWithDebInfo, id `is.xyz.vcmi`).
+
+- Собирается в WSL Ubuntu через Docker (`docker` в WSL без sudo). Клон репозитория — `~/proj/vcmi` в WSL: сборка через `/mnt/c` слишком медленная. Перед новой сборкой обновить клон (`git pull` + `git submodule update`).
+- Образ `vcmi-android-build` уже собран из `docker/BuildAndroid-aarch64.dockerfile` (там conan, Android SDK 35, NDK 29, готовые зависимости).
+- Штатный CMD образа использует пресет `android-daily-release`: он делает AAB и подписывает ключом `dailySigning`, пароля к которому нет. Вместо него:
+  ```sh
+  docker run --rm -v "$PWD":/vcmi -e ANDROID_USER_HOME=/vcmi/.cache/android vcmi-android-build sh -c '
+  cd /vcmi && mkdir -p $GRADLE_USER_HOME $ANDROID_USER_HOME &&
+  echo android.bundle.enableUncompressedNativeLibs=true > $GRADLE_USER_HOME/gradle.properties &&
+  conan install . --output-folder=conan-generated --build=never --profile=dependencies/conan_profiles/android-64 --profile=dependencies/conan_profiles/base/android-system -c tools.android:ndk_path=$ANDROID_HOME/ndk/$NDK_VERSION &&
+  cmake --preset android-conan-ninja-release -D ANDROIDDEPLOYQT_OPTIONS= -D "ANDROID_GRADLE_PROPERTIES=signingConfig=debug;applicationLabel=VCMI" &&
+  cmake --build --preset android-conan-ninja-release'
+  ```
+  Затем `docker run ... chown -R` на свой uid (контейнер пишет от root).
+- Отладочный ключ подписи хранится в `~/proj/vcmi/.cache/android/debug.keystore`. Не удалять: иначе новый APK не встанет поверх старого.
+- Результат: `out/build/android-conan-ninja-release/android-build/vcmi-app/build/outputs/apk/release/vcmi-release.apk`. Полная сборка — около 1070 шагов ninja; перезапуск WSL её прерывает, повторный `cmake --build` продолжает с места остановки.
+- В upstream данные H3 в APK не встраиваются: на телефоне их импортирует лаунчер или они копируются в `Android/data/is.xyz.vcmi/files/vcmi-data/` (`Data`, `Maps`, `Mp3`).
+- В ветке `android-bundled-data` (не закоммичена) добавлено встраивание: Gradle-свойство `bundledGameDataDir` (папка с подпапкой `vcmi-data/{Data,Maps,Mp3}`) добавляется в assets, а `ActivityBundledData` (теперь это LAUNCHER-activity) при первом запуске после установки распаковывает их в `vcmi-data`. Подготовленные данные лежат в WSL: `~/proj/h3-assets` (930 МБ). При сборке добавить `-v ~/proj/h3-assets:/h3assets:ro` и `bundledGameDataDir=/h3assets` в `ANDROID_GRADLE_PROPERTIES`. Результат: `releases\vcmi-1.8.0-dev-arm64-v8a-h3data.apk` (~1 ГБ).
+- `adb` есть, но не в PATH: `C:\Android\Sdk\platform-tools\adb.exe`. Устройства подключены по Wi‑Fi и находятся через mDNS (`adb mdns services`; если `adb devices` пуст, подождать несколько секунд после запуска демона).
+- Целевое устройство — **POCO Pad** (`2405CPCFBG`, `dizi`, 192.168.3.11, serial `adb-19279312-zphBYE._adb-tls-connect._tcp`). В сети есть и телефон Xiaomi 15T (`25069PTEBG`, `goya`, 192.168.3.44) — на него не ставить. Всегда указывать `adb -s <serial>`.
 
 ## Как работать
 
